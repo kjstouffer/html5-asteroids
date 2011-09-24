@@ -1,0 +1,186 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="UTF-8" />
+<title>Asteroids</title>
+</head>
+<body>
+<section>
+
+<div>
+<canvas id="canvas" width="400" height="300">
+Sorry, your browser does not support html5 canvas.
+</canvas>
+</div>
+<div id="debug">
+</div>
+<script type = "text/javascript" src="ship.js" ></script>
+<script type = "text/javascript" src="bullet.js" ></script>
+<script type = "text/javascript" src="asteroid.js" ></script>
+<script type="text/javascript">
+var canvas;
+var ctx;
+var dx = .5;
+var dy = .5;
+var x = 150;
+var y = 100;
+var WIDTH = 400;
+var HEIGHT = 300;
+
+var upPressed = false;
+var downPressed = false;
+var leftPressed = false;
+var rightPressed = false;
+var spacePressed = false;
+
+var mShip = new ship(.075,10,WIDTH/2,HEIGHT/2);
+
+var numAsteroids = 2;
+
+var mAsteroids = new Array();
+
+function circle(x,y,r) {
+    ctx.beginPath();
+    ctx.arc(x, y, r, 0, Math.PI*2, true);
+    ctx.fill();
+}
+
+function rect(x,y,w,h) {
+    ctx.beginPath();
+    ctx.rect(x,y,w,h);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+}
+
+function clear() {
+    ctx.clearRect(0, 0, WIDTH, HEIGHT);
+}
+
+function init() {
+    canvas = document.getElementById("canvas");
+    ctx = canvas.getContext("2d");
+    
+    for (var i = 0; i < numAsteroids; i++)
+    {
+        var xPos = Math.random() * canvas.width;
+        var yPos = Math.random() * canvas.height;
+        var xVelocity = Math.random();
+        var yVelocity = Math.random();
+        mAsteroids.push(new asteroid(xPos, yPos, xVelocity, yVelocity));
+    }
+    
+    return setInterval(draw, 16.67);
+}
+
+function doKeyDown(evt){
+    //switch out this code for a more responsive version, not relying on 
+    //the key repeating speed
+    switch (evt.keyCode) 
+    {
+        case 38:  /* Up arrow was pressed */
+            upPressed = true;
+            break;
+        case 40:  /* Down arrow was pressed */
+            downPressed = true;
+            break;
+        case 37:  /* Left arrow was pressed */
+            leftPressed = true;
+            break;
+        case 39:  /* Right arrow was pressed */
+            rightPressed = true;
+            break;
+        case 32: /* Space bar was pressed*/
+            spacePressed = true;
+            break;
+    }
+}
+
+function doKeyUp(evt)
+{
+    switch (evt.keyCode) 
+    {
+        case 38:  /* Up arrow was released */
+            upPressed = false;
+            break;
+        case 40:  /* Down arrow was released */
+            downPressed = false;
+            break;
+        case 37:  /* Left arrow was released */
+            leftPressed = false;
+            break;
+        case 39:  /* Right arrow was released */
+            rightPressed = false;
+            break;
+        case 32: /* Space bar was released*/
+            spacePressed = false;
+            break;
+    }
+}
+
+function move()
+{
+    if(upPressed)
+    {
+        mShip.accelerate();
+    }
+    else
+    {
+        mShip.stopAccelerating();
+    }
+    if(downPressed)
+    {
+        mShip.decelerate();
+    }
+    if(leftPressed)
+    {
+        mShip.turnShip(-1);
+    }
+    if(rightPressed)
+    {
+        mShip.turnShip(1);
+    }
+    if(spacePressed)
+    {
+        mShip.shoot();
+    }
+}
+
+function checkForCollisions()
+{
+    //bullets and asteroids
+    for (var i = 0; i < mAsteroids.length; i++)
+    {
+        for (var j = 0; j < mShip.bullets.length; j++)
+        {
+            
+        }
+    }
+}
+
+function draw() {
+    clear();
+    checkForCollisions();
+    move();
+    ctx.fillStyle = "white";
+    ctx.strokeStyle = "black";
+    rect(0,0,WIDTH,HEIGHT);
+    mShip.moveShip();
+    mShip.drawShip(canvas,ctx);
+    mShip.drawBullets(canvas,ctx);
+    
+    for(var i = 0; i < mAsteroids.length; i++)
+    {
+        mAsteroids[i].moveAsteroid();
+        mAsteroids[i].drawAsteroid(canvas,ctx);
+    }
+}
+
+
+init();
+window.addEventListener('keydown',doKeyDown,true);
+window.addEventListener('keyup',doKeyUp,true);
+</script>
+</section>
+</body>
+</html>
