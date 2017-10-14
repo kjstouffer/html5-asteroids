@@ -12,8 +12,13 @@
 Sorry, your browser does not support html5 canvas.
 </canvas>
 </div>
+<div id="info">
+    Extra Ships: <b id=lives></b> <br/> Score: <b id="score"></b> 
+</div>
+
 <div id="debug">
 </div>
+
 <script type = "text/javascript" src="ship.js" ></script>
 <script type = "text/javascript" src="bullet.js" ></script>
 <script type = "text/javascript" src="asteroid.js" ></script>
@@ -26,6 +31,9 @@ var x = 150;
 var y = 100;
 var WIDTH = 400;
 var HEIGHT = 300;
+
+var lives = 2;
+var score = 0;
 
 var upPressed = false;
 var downPressed = false;
@@ -167,11 +175,20 @@ function checkForCollisions()
         }
         if(asteroidHit){
             newAsteroids = newAsteroids.concat(mAsteroids[i].splitAsteroid());
+            incrementScore(mAsteroids[i].getScore());
             mAsteroids.splice(i, 1);
             i--;
         }
     }
     mAsteroids = mAsteroids.concat(newAsteroids);
+}
+
+function incrementScore(asteroidValue){
+    const currentScore = score;
+    const newScore = score + asteroidValue;
+    if(currentScore % 7500 > newScore % 7500 && currentScore < 7500) lives++;
+    if(currentScore % 20000 > newScore % 20000) lives++;
+    score = newScore;
 }
 
 function checkAsteroidBulletCollision(asteroid, bullet){
@@ -181,6 +198,14 @@ function checkAsteroidBulletCollision(asteroid, bullet){
     const radii = asteroid.radius + bullet.radius;
     if(distance <= radii) return true;
     return false;
+}
+
+function updateScore(){
+    document.getElementById("score").innerHTML = score;
+}
+
+function updateLives(){
+    document.getElementById("lives").innerHTML = lives;
 }
 
 function checkWin(){
@@ -209,6 +234,8 @@ function draw() {
         mAsteroids[i].moveAsteroid();
         mAsteroids[i].drawAsteroid(canvas,ctx);
     }
+    updateScore()
+    updateLives()
     checkWin()
 }
 

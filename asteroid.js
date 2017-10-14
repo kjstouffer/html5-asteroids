@@ -28,6 +28,7 @@ function asteroid(xPos, yPos, xVelocity, yVelocity, lifetime)
     this.drawAsteroid = drawAsteroid;
     this.splitAsteroid = splitAsteroid;
     this.isAsteroidDead = isAsteroidDead;
+    this.getScore = getScore;
 }
 
 
@@ -89,6 +90,10 @@ function isAsteroidDead()
     }
 
     return returnValue;
+}
+
+function getScore(){
+    return 1/this.factor * 100;
 }
 
 function splitAsteroid()
