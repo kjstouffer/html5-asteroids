@@ -34,6 +34,7 @@ var HEIGHT = 300;
 
 var lives = 2;
 var score = 0;
+var lose = false;
 
 var upPressed = false;
 var downPressed = false;
@@ -160,10 +161,19 @@ function move()
 
 function checkForCollisions()
 {
+    var vulnerable = mShip.isVulnerable();
     var newAsteroids = []
     //bullets and asteroids
     for (var i = 0; i < mAsteroids.length; i++)
     {
+        if(vulnerable && didShipCollide(mAsteroids[i])){
+            //decrement lives
+            lives--;
+            //reset ship, make invincible for 3 seconds
+            //freshly initialized ships are invincible for 3 seconds
+            mShip = new ship(.075,10,WIDTH/2,HEIGHT/2);
+
+        }
         var asteroidHit = false;
         for (var j = 0; j < mShip.bullets.length; j++)
         {
@@ -183,7 +193,21 @@ function checkForCollisions()
     mAsteroids = mAsteroids.concat(newAsteroids);
 }
 
+function didShipCollide(asteroid){
+    if(lose) return false; //for fun!
+    
+    //check each vertex, if distance is < circle radius, it's a collision.
+    const distance = Math.sqrt(Math.pow(asteroid.xPos - mShip.xPos, 2) + Math.pow(asteroid.yPos - mShip.yPos, 2));
+    if(distance <= asteroid.radius) return true;
+
+    //check if circle is inside of ship
+    //check if circle hit edge of ship
+    //just kidding, everything is small enough that vertices will be enough
+    return false;    
+}
+
 function incrementScore(asteroidValue){
+    if(lose) return;
     const currentScore = score;
     const newScore = score + asteroidValue;
     if(currentScore % 7500 > newScore % 7500 && currentScore < 7500) lives++;
@@ -217,6 +241,15 @@ function checkWin(){
     }
 }
 
+function checkLose(){
+    if(lives < 0){
+        lose = true;
+        //you lose! (but still can fly around and stuff)
+        ctx.font = "30px Arial";
+        ctx.fillStyle = 'black';
+        ctx.fillText("Game Over", WIDTH/2 - 75, HEIGHT/2);
+    }
+}
 
 function draw() {
     clear();
@@ -236,6 +269,7 @@ function draw() {
     }
     updateScore()
     updateLives()
+    checkLose()
     checkWin()
 }
 

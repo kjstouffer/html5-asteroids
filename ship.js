@@ -5,7 +5,7 @@ function ship(accelerationRate, fireRate, xPos, yPos)
     
     this.accelerationRate = accelerationRate;
     this.decelerationRate = 5*accelerationRate;
-    
+    this.invincibleCounter = 120;
     
     this.xPos = xPos;
     this.yPos = yPos;
@@ -39,6 +39,7 @@ function ship(accelerationRate, fireRate, xPos, yPos)
     this.shoot = shoot;
     this.drawShip = drawShip;
     this.drawBullets = drawBullets;
+    this.isVulnerable = isVulnerable;
 }
 
 
@@ -86,6 +87,13 @@ function decelerate()
     {
         this.xVelocity -= this.decelerationRate * Math.cos(this.directionMoving);
     }
+}
+
+function isVulnerable(){
+    if(this.invincibleCounter > 0) this.invincibleCounter--;
+    //if timer has expired, return false
+    if(this.invincibleCounter == 0) return true;
+    return false;
 }
 
 //tell the ship to move
