@@ -60,23 +60,24 @@ function clear() {
 function init() {
     canvas = document.getElementById("canvas");
     ctx = canvas.getContext("2d");
-    
+
     for (var i = 0; i < numAsteroids; i++)
     {
         var xPos = Math.random() * canvas.width;
         var yPos = Math.random() * canvas.height;
         var xVelocity = Math.random();
         var yVelocity = Math.random();
-        mAsteroids.push(new asteroid(xPos, yPos, xVelocity, yVelocity));
+        var lifetime = 2;
+        mAsteroids.push(new asteroid(xPos, yPos, xVelocity, yVelocity, lifetime));
     }
-    
+
     return setInterval(draw, 16.67);
 }
 
 function doKeyDown(evt){
-    //switch out this code for a more responsive version, not relying on 
+    //switch out this code for a more responsive version, not relying on
     //the key repeating speed
-    switch (evt.keyCode) 
+    switch (evt.keyCode)
     {
         case 38:  /* Up arrow was pressed */
             upPressed = true;
@@ -98,7 +99,7 @@ function doKeyDown(evt){
 
 function doKeyUp(evt)
 {
-    switch (evt.keyCode) 
+    switch (evt.keyCode)
     {
         case 38:  /* Up arrow was released */
             upPressed = false;
@@ -153,7 +154,7 @@ function checkForCollisions()
     {
         for (var j = 0; j < mShip.bullets.length; j++)
         {
-            
+
         }
     }
 }
@@ -168,7 +169,7 @@ function draw() {
     mShip.moveShip();
     mShip.drawShip(canvas,ctx);
     mShip.drawBullets(canvas,ctx);
-    
+
     for(var i = 0; i < mAsteroids.length; i++)
     {
         mAsteroids[i].moveAsteroid();
