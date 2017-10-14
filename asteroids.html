@@ -61,8 +61,13 @@ function init() {
     canvas = document.getElementById("canvas");
     ctx = canvas.getContext("2d");
 
-    for (var i = 0; i < numAsteroids; i++)
-    {
+    initializeAsteroids()
+
+    return setInterval(draw, 16.67);
+}
+
+function initializeAsteroids(){
+    for (var i = 0; i < numAsteroids; i++){
         var xPos = Math.random() * canvas.width;
         var yPos = Math.random() * canvas.height;
         var xVelocity = Math.random();
@@ -70,8 +75,6 @@ function init() {
         var lifetime = 2;
         mAsteroids.push(new asteroid(xPos, yPos, xVelocity, yVelocity, lifetime));
     }
-
-    return setInterval(draw, 16.67);
 }
 
 function doKeyDown(evt){
@@ -149,15 +152,46 @@ function move()
 
 function checkForCollisions()
 {
+    var newAsteroids = []
     //bullets and asteroids
     for (var i = 0; i < mAsteroids.length; i++)
     {
+        var asteroidHit = false;
         for (var j = 0; j < mShip.bullets.length; j++)
         {
-
+            if(checkAsteroidBulletCollision(mAsteroids[i], mShip.bullets[j])){
+                asteroidHit = true;
+                mShip.bullets.splice(j, 1)
+                break;
+            }
+        }
+        if(asteroidHit){
+            newAsteroids = newAsteroids.concat(mAsteroids[i].splitAsteroid());
+            mAsteroids.splice(i, 1);
+            i--;
         }
     }
+    mAsteroids = mAsteroids.concat(newAsteroids);
 }
+
+function checkAsteroidBulletCollision(asteroid, bullet){
+    //if the distance between the bullet and the asteroid is less than
+    // the sum of their radii, they are collided.
+    const distance = Math.sqrt(Math.pow(asteroid.xPos - bullet.xPos, 2) + Math.pow(asteroid.yPos - bullet.yPos, 2));
+    const radii = asteroid.radius + bullet.radius;
+    if(distance <= radii) return true;
+    return false;
+}
+
+function checkWin(){
+    if(mAsteroids.length == 0){
+        //reset game, add additional asteroid
+        numAsteroids++;
+        initializeAsteroids();
+        mShip = new ship(.075,10,WIDTH/2,HEIGHT/2);
+    }
+}
+
 
 function draw() {
     clear();
@@ -175,6 +209,7 @@ function draw() {
         mAsteroids[i].moveAsteroid();
         mAsteroids[i].drawAsteroid(canvas,ctx);
     }
+    checkWin()
 }
 
 

@@ -18,7 +18,8 @@ function bullet(xPos, yPos, xVelocity, yVelocity, direction)
     //direction will always be between pi and -pi
     //this.direction = direction;
     
-    this.lifeTime = 10000;
+    this.lifeTime = 50;
+    this.radius = 1;
     
     this.moveBullet = moveBullet;
     this.drawBullet = drawBullet;
@@ -66,6 +67,7 @@ function drawBullet(canvas,context)
     //context.fill();
     //context.stroke();
 }
+
 function isBulletDead()
 {
     var returnValue = false;
@@ -75,8 +77,4 @@ function isBulletDead()
     }
     
     return returnValue;
-}
-function didBulletHitSomething()
-{
-    
 }

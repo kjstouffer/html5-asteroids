@@ -20,7 +20,8 @@ function asteroid(xPos, yPos, xVelocity, yVelocity, lifetime)
     //direction will always be between pi and -pi
     this.direction = direction;
     this.lifetime = lifetime;
-    this.factor = 1;
+    this.factor = 2 ** (lifetime - 1);
+    this.radius = 13 * this.factor;
 
     //define class functions
     this.moveAsteroid = moveAsteroid;
@@ -82,7 +83,7 @@ function drawAsteroid(canvas,context)
 function isAsteroidDead()
 {
     var returnValue = false;
-    if(this.lifeTime < 0)
+    if(this.lifetime <= 0)
     {
         returnValue = true;
     }
@@ -92,5 +93,7 @@ function isAsteroidDead()
 
 function splitAsteroid()
 {
-
+    if(this.isAsteroidDead()) return [];
+    var newAsteroids = [new asteroid(this.xPos, this.yPos, this.xVelocity, this.yVelocity, this.lifetime - 1), new asteroid(this.xPos, this.yPos, this.xVelocity, this.yVelocity, this.lifetime - 1)];
+    return newAsteroids;
 }
