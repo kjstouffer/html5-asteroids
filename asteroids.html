@@ -171,7 +171,7 @@ function checkForCollisions()
             lives--;
             //reset ship, make invincible for 3 seconds
             //freshly initialized ships are invincible for 3 seconds
-            mShip = new ship(.075,10,WIDTH/2,HEIGHT/2);
+            mShip = new ship(.075,15,WIDTH/2,HEIGHT/2);
 
         }
         var asteroidHit = false;
@@ -237,7 +237,7 @@ function checkWin(){
         //reset game, add additional asteroid
         numAsteroids++;
         initializeAsteroids();
-        mShip = new ship(.075,10,WIDTH/2,HEIGHT/2);
+        mShip = new ship(.075,15,WIDTH/2,HEIGHT/2);
     }
 }
 
