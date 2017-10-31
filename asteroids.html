@@ -1,283 +1,688 @@
 <!doctype html>
 <html>
-<head>
-<meta charset="UTF-8" />
-<title>Asteroids</title>
-</head>
-<body>
-<section>
+    <head>
+        <meta charset="UTF-8" />
+        <title>Asteroids</title>
+    </head>
+    <body>
+        <section>
 
-<div>
-<canvas id="canvas" width="400" height="300">
-Sorry, your browser does not support html5 canvas.
-</canvas>
-</div>
-<div id="info">
-    Extra Ships: <b id=lives></b> <br/> Score: <b id="score"></b> 
-</div>
+            <div>
+                <canvas id="canvas" width="400" height="300">
+                    Sorry, your browser does not support html5 canvas.
+                </canvas>
+            </div>
+            <div id="info">
+                Extra Ships: <b id=lives></b> <br/> Score: <b id="score"></b> 
+            </div>
 
-<div id="debug">
-</div>
+            <div id="debug">
+            </div>
 
-<script type = "text/javascript" src="ship.js" ></script>
-<script type = "text/javascript" src="bullet.js" ></script>
-<script type = "text/javascript" src="asteroid.js" ></script>
-<script type="text/javascript">
-var canvas;
-var ctx;
-var dx = .5;
-var dy = .5;
-var x = 150;
-var y = 100;
-var WIDTH = 400;
-var HEIGHT = 300;
+            <script type = "text/javascript">//bullet class
 
-var lives = 2;
-var score = 0;
-var lose = false;
+             function asteroid(xPos, yPos, xVelocity, yVelocity, lifetime)
+             {
+                 direction = Math.random() * Math.PI * 2;
+                 if(direction > Math.PI)
+                     {
+                         direction = direction - Math.PI * 2;
+                     }
 
-var upPressed = false;
-var downPressed = false;
-var leftPressed = false;
-var rightPressed = false;
-var spacePressed = false;
+                 var speed = Math.random();
 
-var mShip = new ship(.075,15,WIDTH/2,HEIGHT/2);
+                 var xSpeed = speed * Math.cos(direction);
+                 var ySpeed = speed * Math.sin(direction);
 
-var numAsteroids = 2;
+                 this.xPos = xPos;
+                 this.yPos = yPos;
+                 this.xVelocity = xVelocity + xSpeed;
+                 this.yVelocity = yVelocity + ySpeed;
+                 //direction will always be between pi and -pi
+                 this.direction = direction;
+                 this.lifetime = lifetime;
+                 this.factor = 2 ** (lifetime - 1);
+                 this.radius = 13 * this.factor;
 
-var mAsteroids = new Array();
-
-function circle(x,y,r) {
-    ctx.beginPath();
-    ctx.arc(x, y, r, 0, Math.PI*2, true);
-    ctx.fill();
-}
-
-function rect(x,y,w,h) {
-    ctx.beginPath();
-    ctx.rect(x,y,w,h);
-    ctx.closePath();
-    ctx.fill();
-    ctx.stroke();
-}
-
-function clear() {
-    ctx.clearRect(0, 0, WIDTH, HEIGHT);
-}
-
-function init() {
-    canvas = document.getElementById("canvas");
-    ctx = canvas.getContext("2d");
-
-    initializeAsteroids()
-
-    return setInterval(draw, 16.67);
-}
-
-function initializeAsteroids(){
-    for (var i = 0; i < numAsteroids; i++){
-        var xPos = Math.random() * canvas.width;
-        var yPos = Math.random() * canvas.height;
-        var xVelocity = Math.random();
-        var yVelocity = Math.random();
-        var lifetime = 2;
-        mAsteroids.push(new asteroid(xPos, yPos, xVelocity, yVelocity, lifetime));
-    }
-}
-
-function doKeyDown(evt){
-    //switch out this code for a more responsive version, not relying on
-    //the key repeating speed
-    switch (evt.keyCode)
-    {
-        case 38:  /* Up arrow was pressed */
-            upPressed = true;
-            break;
-        case 40:  /* Down arrow was pressed */
-            downPressed = true;
-            break;
-        case 37:  /* Left arrow was pressed */
-            leftPressed = true;
-            break;
-        case 39:  /* Right arrow was pressed */
-            rightPressed = true;
-            break;
-        case 32: /* Space bar was pressed*/
-            spacePressed = true;
-            break;
-    }
-}
-
-function doKeyUp(evt)
-{
-    switch (evt.keyCode)
-    {
-        case 38:  /* Up arrow was released */
-            upPressed = false;
-            break;
-        case 40:  /* Down arrow was released */
-            downPressed = false;
-            break;
-        case 37:  /* Left arrow was released */
-            leftPressed = false;
-            break;
-        case 39:  /* Right arrow was released */
-            rightPressed = false;
-            break;
-        case 32: /* Space bar was released*/
-            spacePressed = false;
-            break;
-    }
-}
-
-function move()
-{
-    if(upPressed)
-    {
-        mShip.accelerate();
-    }
-    else
-    {
-        mShip.stopAccelerating();
-    }
-    if(downPressed)
-    {
-        mShip.decelerate();
-    }
-    if(leftPressed)
-    {
-        mShip.turnShip(-1);
-    }
-    if(rightPressed)
-    {
-        mShip.turnShip(1);
-    }
-    if(spacePressed)
-    {
-        mShip.shoot();
-    }
-}
-
-function checkForCollisions()
-{
-    var vulnerable = mShip.isVulnerable();
-    var newAsteroids = []
-    //bullets and asteroids
-    for (var i = 0; i < mAsteroids.length; i++)
-    {
-        if(vulnerable && didShipCollide(mAsteroids[i])){
-            //decrement lives
-            lives--;
-            //reset ship, make invincible for 3 seconds
-            //freshly initialized ships are invincible for 3 seconds
-            mShip = new ship(.075,10,WIDTH/2,HEIGHT/2);
-
-        }
-        var asteroidHit = false;
-        for (var j = 0; j < mShip.bullets.length; j++)
-        {
-            if(checkAsteroidBulletCollision(mAsteroids[i], mShip.bullets[j])){
-                asteroidHit = true;
-                mShip.bullets.splice(j, 1)
-                break;
-            }
-        }
-        if(asteroidHit){
-            newAsteroids = newAsteroids.concat(mAsteroids[i].splitAsteroid());
-            incrementScore(mAsteroids[i].getScore());
-            mAsteroids.splice(i, 1);
-            i--;
-        }
-    }
-    mAsteroids = mAsteroids.concat(newAsteroids);
-}
-
-function didShipCollide(asteroid){
-    if(lose) return false; //for fun!
-    
-    //check each vertex, if distance is < circle radius, it's a collision.
-    const distance = Math.sqrt(Math.pow(asteroid.xPos - mShip.xPos, 2) + Math.pow(asteroid.yPos - mShip.yPos, 2));
-    if(distance <= asteroid.radius) return true;
-
-    //check if circle is inside of ship
-    //check if circle hit edge of ship
-    //just kidding, everything is small enough that vertices will be enough
-    return false;    
-}
-
-function incrementScore(asteroidValue){
-    if(lose) return;
-    const currentScore = score;
-    const newScore = score + asteroidValue;
-    if(currentScore % 7500 > newScore % 7500 && currentScore < 7500) lives++;
-    if(currentScore % 20000 > newScore % 20000) lives++;
-    score = newScore;
-}
-
-function checkAsteroidBulletCollision(asteroid, bullet){
-    //if the distance between the bullet and the asteroid is less than
-    // the sum of their radii, they are collided.
-    const distance = Math.sqrt(Math.pow(asteroid.xPos - bullet.xPos, 2) + Math.pow(asteroid.yPos - bullet.yPos, 2));
-    const radii = asteroid.radius + bullet.radius;
-    if(distance <= radii) return true;
-    return false;
-}
-
-function updateScore(){
-    document.getElementById("score").innerHTML = score;
-}
-
-function updateLives(){
-    document.getElementById("lives").innerHTML = lives;
-}
-
-function checkWin(){
-    if(mAsteroids.length == 0){
-        //reset game, add additional asteroid
-        numAsteroids++;
-        initializeAsteroids();
-        mShip = new ship(.075,10,WIDTH/2,HEIGHT/2);
-    }
-}
-
-function checkLose(){
-    if(lives < 0){
-        lose = true;
-        //you lose! (but still can fly around and stuff)
-        ctx.font = "30px Arial";
-        ctx.fillStyle = 'black';
-        ctx.fillText("Game Over", WIDTH/2 - 75, HEIGHT/2);
-    }
-}
-
-function draw() {
-    clear();
-    checkForCollisions();
-    move();
-    ctx.fillStyle = "white";
-    ctx.strokeStyle = "black";
-    rect(0,0,WIDTH,HEIGHT);
-    mShip.moveShip();
-    mShip.drawShip(canvas,ctx);
-    mShip.drawBullets(canvas,ctx);
-
-    for(var i = 0; i < mAsteroids.length; i++)
-    {
-        mAsteroids[i].moveAsteroid();
-        mAsteroids[i].drawAsteroid(canvas,ctx);
-    }
-    updateScore()
-    updateLives()
-    checkLose()
-    checkWin()
-}
+                 //define class functions
+                 this.moveAsteroid = moveAsteroid;
+                 this.drawAsteroid = drawAsteroid;
+                 this.splitAsteroid = splitAsteroid;
+                 this.isAsteroidDead = isAsteroidDead;
+                 this.getScore = getScore;
+             }
 
 
-init();
-window.addEventListener('keydown',doKeyDown,true);
-window.addEventListener('keyup',doKeyUp,true);
-</script>
+             //tell the bullet to move
+             function moveAsteroid()
+             {
+                 this.xPos += this.xVelocity;
+                 this.yPos += this.yVelocity;
+             }
+
+             //draws the asteroid on the specified canvas context
+             function drawAsteroid(canvas,context)
+             {
+
+                 //xPos and yPos will always be "0" when drawing the bullet. so from the center
+                 //of the bullet, there will be an invisible line of length x depending on the
+                 //side of the bullet.
+                 if(this.xPos > canvas.width)
+                     {
+                         this.xPos = 0;
+                     }
+                 if(this.yPos > canvas.height)
+                     {
+                         this.yPos = 0;
+                     }
+                 if(this.xPos < 0)
+                     {
+                         this.xPos = canvas.width;
+                     }
+                 if(this.yPos < 0)
+                     {
+                         this.yPos = canvas.height;
+                     }
+
+                 context.beginPath();
+                 context.moveTo(this.xPos - (this.factor * 15), this.yPos );
+                 context.lineTo(this.xPos - (this.factor * 11), this.yPos - (this.factor * 13));
+                 context.lineTo(this.xPos + (this.factor * 3),  this.yPos - (this.factor * 16));
+                 context.lineTo(this.xPos + (this.factor * 3),  this.yPos - (this.factor * 9));
+                 context.lineTo(this.xPos + (this.factor * 11), this.yPos - (this.factor * 11));
+                 context.lineTo(this.xPos + (this.factor * 11), this.yPos - (this.factor * 3));
+                 context.lineTo(this.xPos + (this.factor * 7),  this.yPos - (this.factor * 1));
+                 context.lineTo(this.xPos + (this.factor * 10), this.yPos + (this.factor * 6));
+                 context.lineTo(this.xPos + (this.factor * 4),  this.yPos + (this.factor * 13));
+                 context.lineTo(this.xPos - (this.factor * 9),  this.yPos + (this.factor * 9));
+                 context.lineTo(this.xPos - (this.factor * 15), this.yPos );
+                 context.closePath();
+                 context.fill();
+                 context.stroke();
+             }
+
+             // each main asteroid has a lifetime of 2, which means it can be split twice before being destroyed.
+             function isAsteroidDead()
+             {
+                 var returnValue = false;
+                 if(this.lifetime <= 0)
+                     {
+                         returnValue = true;
+                     }
+
+                 return returnValue;
+             }
+
+             function getScore(){
+                 return 1/this.factor * 100;
+             }
+
+             function splitAsteroid()
+             {
+                 if(this.isAsteroidDead()) return [];
+                 var newAsteroids = [new asteroid(this.xPos, this.yPos, this.xVelocity, this.yVelocity, this.lifetime - 1), new asteroid(this.xPos, this.yPos, this.xVelocity, this.yVelocity, this.lifetime - 1)];
+                 return newAsteroids;
+             }
+            </script>
+            <script type = "text/javascript" >//bullet class
+
+             function bullet(xPos, yPos, xVelocity, yVelocity, direction)
+             {
+                 
+                 //var xFrontOfShip = 12 * Math.cos(direction);
+                 //var yFrontOfShip = 12 * Math.sin(direction);
+                 
+                 var speed = 5;
+                 
+                 var xSpeed = speed * Math.cos(direction);
+                 var ySpeed = speed * Math.sin(direction);
+                 
+                 this.xPos = xPos;
+                 this.yPos = yPos;
+                 this.xVelocity = xVelocity + xSpeed;
+                 this.yVelocity = yVelocity + ySpeed;
+                 //direction will always be between pi and -pi
+                 //this.direction = direction;
+                 
+                 this.lifeTime = 50;
+                 this.radius = 1;
+                 
+                 this.moveBullet = moveBullet;
+                 this.drawBullet = drawBullet;
+                 this.isBulletDead = isBulletDead;
+             }
+
+
+             //tell the bullet to move
+             function moveBullet()
+             {
+                 this.xPos += this.xVelocity;
+                 this.yPos += this.yVelocity;
+             }
+
+             //draws the bullet on the specified canvas context
+             function drawBullet(canvas,context)
+             {
+                 this.lifeTime--;
+                 //xPos and yPos will always be "0" when drawing the bullet. so from the center
+                 //of the bullet, there will be an invisible line of length x depending on the
+                 //side of the bullet.
+                 if(this.xPos > canvas.width)
+                     {
+                         this.xPos = 0;
+                     }
+                 if(this.yPos > canvas.height)
+                     {
+                         this.yPos = 0;
+                     }
+                 if(this.xPos < 0)
+                     {
+                         this.xPos = canvas.width;
+                     }
+                 if(this.yPos < 0)
+                     {
+                         this.yPos = canvas.height;
+                     }
+                 
+                 
+                 
+                 //context.beginPath();
+                 context.fillRect(this.xPos-2,this.yPos-2, 4,4);
+                 context.strokeRect(this.xPos-2,this.yPos-2, 4,4)
+                 //context.closePath();
+                 //context.fill();
+                 //context.stroke();
+             }
+
+             function isBulletDead()
+             {
+                 var returnValue = false;
+                 if(this.lifeTime < 0)
+                     {
+                         returnValue = true;
+                     }
+                 
+                 return returnValue;
+             }
+            </script>
+            <script type = "text/javascript" >//ship class
+
+             function ship(accelerationRate, fireRate, xPos, yPos)
+             {
+                 
+                 this.accelerationRate = accelerationRate;
+                 this.decelerationRate = 5*accelerationRate;
+                 this.invincibleCounter = 120;
+                 
+                 this.xPos = xPos;
+                 this.yPos = yPos;
+                 this.xVelocity = 0;
+                 this.yVelocity = 0;
+                 //directionFacing will always be between pi and -pi
+                 this.directionFacing = 0;
+                 this.directionMoving = 0;
+                 this.bullets = new Array();
+                 
+                 this.shootTimer = 31;
+                 //fire rate is every 1/60 of a second, so to have it shoot twice per second, use 30
+                 this.fireRate = fireRate;
+                 
+                 this.xFrontOfShip = 12 * Math.cos(this.directionFacing) + this.xPos;
+                 this.yFrontOfShip = 12 * Math.sin(this.directionFacing) + this.yPos;
+                 
+                 this.xBackRightOfShip = 6 * Math.cos(this.directionFacing + (4*Math.PI/5)) + this.xPos;
+                 this.yBackRightOfShip = 6 * Math.sin(this.directionFacing + (4*Math.PI/5)) + this.yPos;
+                 
+                 this.xBackLeftOfShip = 6 * Math.cos(this.directionFacing - (4*Math.PI/5)) + this.xPos;
+                 this.yBackLeftOfShip = 6 * Math.sin(this.directionFacing - (4*Math.PI/5)) + this.yPos;
+                 
+                 this.isAccelerating = false;
+                 
+                 this.accelerate = accelerate;
+                 this.stopAccelerating = stopAccelerating;
+                 this.decelerate = decelerate;
+                 this.moveShip = moveShip;
+                 this.turnShip = turnShip;
+                 this.shoot = shoot;
+                 this.drawShip = drawShip;
+                 this.drawBullets = drawBullets;
+                 this.isVulnerable = isVulnerable;
+             }
+
+
+             //accelerates in the directionFacing the ship is facing (in radians)
+             function accelerate()
+             {
+                 //var speed = Math.sqrt(this.xVelocity * this.xVelocity + this.yVelocity * this.yVelocity);
+                 //var directionFacing = Math.atan2(this.yVelocity, this.xVelocity);
+                 //to make restricting the max speed easier, i could use a 
+                 //polar coordnate system instead, but since everything is 
+                 //already cartesian, it makes more sense to do all movement
+                 //in a cartesian system so that adding and subtracting velocities
+                 //is more straight forward.  upon thinking about this problem further,
+                 //i've decided to leave maxSpeed out of the equation since i would have to
+                 //implement an exponential decay model approaching the max speed if i were
+                 //to do it correctly.
+                 this.xVelocity += this.accelerationRate * Math.cos(this.directionFacing);
+                 this.yVelocity += this.accelerationRate * Math.sin(this.directionFacing);
+                 this.directionMoving = Math.atan2(this.yVelocity, this.xVelocity);
+                 
+                 this.isAccelerating = true;
+             }
+
+             function stopAccelerating()
+             {
+                 this.isAccelerating = false;
+             }
+             //accelerate backwards
+             function decelerate()
+             {
+                 //no matter which directionFacing the ship is facing, slow it down to stopping.
+                 if(Math.abs(this.yVelocity) < this.decelerationRate)
+                     {
+                         this.yVelocity = 0;
+                     }
+                 else
+                     {
+                         this.yVelocity -= this.decelerationRate * Math.sin(this.directionMoving);
+                     }
+                 if(Math.abs(this.xVelocity) < this.decelerationRate)
+                     {
+                         this.xVelocity = 0;
+                     }
+                 else
+                     {
+                         this.xVelocity -= this.decelerationRate * Math.cos(this.directionMoving);
+                     }
+             }
+
+             function isVulnerable(){
+                 if(this.invincibleCounter > 0) this.invincibleCounter--;
+                 //if timer has expired, return false
+                 if(this.invincibleCounter == 0) return true;
+                 return false;
+             }
+
+             //tell the ship to move
+             function moveShip()
+             {
+                 this.xPos += this.xVelocity;
+                 this.yPos += this.yVelocity;
+             }
+             //directionFacing will be 1 for clockwise, 0 for not turning, and -1 for counter clockwise,
+             //not to be confused with the directionFacing the ship is facing
+             function turnShip(turndirectionFacing)
+             {
+                 if(turndirectionFacing > 0)
+                     {
+                         //turn ship to the "right"
+                         this.directionFacing += 3*(Math.PI / 180);
+                         if(this.directionFacing >= Math.PI)
+                             {
+                                 this.directionFacing = this.directionFacing - 2 * Math.PI;
+                             }
+                     }
+                 else if (turndirectionFacing < 0)
+                     {
+                         //turn ship to the "left"
+                         this.directionFacing -= 3*(Math.PI / 180);
+                         if(this.directionFacing <= -Math.PI)
+                             {
+                                 this.directionFacing = this.directionFacing + 2 * Math.PI;
+                             }
+                     }
+                 else
+                     {
+                         //dont turn the ship
+                     }
+                 
+             }
+
+             //draws a bullet coming out of the front of the ship
+             //only allow to shoot once every half of a second
+             function shoot()
+             {
+                 if(this.shootTimer > this.fireRate){
+                     //create a bullet in an array belonging to the ship
+                     this.bullets.push(new bullet(this.xFrontOfShip, this.yFrontOfShip, this.xVelocity, this.yVelocity, this.directionFacing));
+                     this.shootTimer = 0;
+                 }
+             }
+
+             //draws the ship on the specified canvas context
+             function drawShip(canvas,context)
+             {
+                 //xPos and yPos will always be "0" when drawing the ship. so from the center
+                 //of the ship, there will be an invisible line of length x depending on the
+                 //side of the ship.
+                 if(this.xPos > canvas.width)
+                     {
+                         this.xPos = 0;
+                     }
+                 if(this.yPos > canvas.height)
+                     {
+                         this.yPos = 0;
+                     }
+                 if(this.xPos < 0)
+                     {
+                         this.xPos = canvas.width;
+                     }
+                 if(this.yPos < 0)
+                     {
+                         this.yPos = canvas.height;
+                     }
+                 
+                 this.xFrontOfShip = 12 * Math.cos(this.directionFacing) + this.xPos;
+                 this.yFrontOfShip = 12 * Math.sin(this.directionFacing) + this.yPos;
+                 
+                 this.xBackRightOfShip = 6 * Math.cos(this.directionFacing + (3*Math.PI/4)) + this.xPos;
+                 this.yBackRightOfShip = 6 * Math.sin(this.directionFacing + (3*Math.PI/4)) + this.yPos;
+                 
+                 this.xBackLeftOfShip = 6 * Math.cos(this.directionFacing - (3*Math.PI/4)) + this.xPos;
+                 this.yBackLeftOfShip = 6 * Math.sin(this.directionFacing - (3*Math.PI/4)) + this.yPos;
+                 
+                 context.beginPath();
+                 context.moveTo(this.xFrontOfShip, this.yFrontOfShip);
+                 context.lineTo(this.xBackRightOfShip, this.yBackRightOfShip);
+                 context.lineTo(this.xBackLeftOfShip, this.yBackLeftOfShip);
+                 context.lineTo(this.xFrontOfShip, this.yFrontOfShip);
+                 context.closePath();
+                 context.fill();
+                 context.stroke();
+                 
+                 //draw the fire!!!
+                 if(this.isAccelerating == true)
+                     {
+                         var startAngle = this.directionFacing + Math.PI / 2;
+                         var endAngle = this.directionFacing - Math.PI / 2;
+                         var radius = 3.5;
+                         var x = (this.xBackRightOfShip + this.xBackLeftOfShip) / 2;
+                         var y = (this.yBackRightOfShip + this.yBackLeftOfShip) / 2;
+                         context.beginPath();
+                         context.moveTo(x,y);
+                         context.arc(x,y,radius,startAngle,endAngle);
+                         
+                         context.closePath();
+                         context.fill();
+                         context.stroke();
+                     }
+                 
+             }
+
+             function drawBullets(canvas,context)
+             {
+                 this.shootTimer++;
+                 if(this.bullets.length > 0)
+                     {
+                         if(this.bullets[0].isBulletDead() == true)
+                             {
+                                 this.bullets.shift();
+                             }
+                     }
+                 for(var i = 0; i < this.bullets.length; i++)
+                     {
+                         this.bullets[i].moveBullet();
+                         this.bullets[i].drawBullet(canvas, context);
+                     }
+                 
+             }
+            </script>
+            <script type="text/javascript">
+             var canvas;
+             var ctx;
+             var dx = .5;
+             var dy = .5;
+             var x = 150;
+             var y = 100;
+             var WIDTH = 400;
+             var HEIGHT = 300;
+
+             var lives = 2;
+             var score = 0;
+             var lose = false;
+
+             var upPressed = false;
+             var downPressed = false;
+             var leftPressed = false;
+             var rightPressed = false;
+             var spacePressed = false;
+
+             var mShip = new ship(.075,15,WIDTH/2,HEIGHT/2);
+
+             var numAsteroids = 2;
+
+             var mAsteroids = new Array();
+
+             function circle(x,y,r) {
+                 ctx.beginPath();
+                 ctx.arc(x, y, r, 0, Math.PI*2, true);
+                 ctx.fill();
+             }
+
+             function rect(x,y,w,h) {
+                 ctx.beginPath();
+                 ctx.rect(x,y,w,h);
+                 ctx.closePath();
+                 ctx.fill();
+                 ctx.stroke();
+             }
+
+             function clear() {
+                 ctx.clearRect(0, 0, WIDTH, HEIGHT);
+             }
+
+             function init() {
+                 canvas = document.getElementById("canvas");
+                 ctx = canvas.getContext("2d");
+
+                 initializeAsteroids()
+
+                 return setInterval(draw, 16.67);
+             }
+
+             function initializeAsteroids(){
+                 for (var i = 0; i < numAsteroids; i++){
+                     var xPos = Math.random() * canvas.width;
+                     var yPos = Math.random() * canvas.height;
+                     var xVelocity = Math.random();
+                     var yVelocity = Math.random();
+                     var lifetime = 2;
+                     mAsteroids.push(new asteroid(xPos, yPos, xVelocity, yVelocity, lifetime));
+                 }
+             }
+
+             function doKeyDown(evt){
+                 //switch out this code for a more responsive version, not relying on
+                 //the key repeating speed
+                 switch (evt.keyCode)
+                 {
+                     case 38:  /* Up arrow was pressed */
+                     upPressed = true;
+                     break;
+                     case 40:  /* Down arrow was pressed */
+                     downPressed = true;
+                     break;
+                     case 37:  /* Left arrow was pressed */
+                     leftPressed = true;
+                     break;
+                     case 39:  /* Right arrow was pressed */
+                     rightPressed = true;
+                     break;
+                     case 32: /* Space bar was pressed*/
+                     spacePressed = true;
+                     break;
+                 }
+             }
+
+             function doKeyUp(evt)
+             {
+                 switch (evt.keyCode)
+                 {
+                     case 38:  /* Up arrow was released */
+                     upPressed = false;
+                     break;
+                     case 40:  /* Down arrow was released */
+                     downPressed = false;
+                     break;
+                     case 37:  /* Left arrow was released */
+                     leftPressed = false;
+                     break;
+                     case 39:  /* Right arrow was released */
+                     rightPressed = false;
+                     break;
+                     case 32: /* Space bar was released*/
+                     spacePressed = false;
+                     break;
+                 }
+             }
+
+             function move()
+             {
+                 if(upPressed)
+                     {
+                         mShip.accelerate();
+                     }
+                 else
+                     {
+                         mShip.stopAccelerating();
+                     }
+                 if(downPressed)
+                     {
+                         mShip.decelerate();
+                     }
+                 if(leftPressed)
+                     {
+                         mShip.turnShip(-1);
+                     }
+                 if(rightPressed)
+                     {
+                         mShip.turnShip(1);
+                     }
+                 if(spacePressed)
+                     {
+                         mShip.shoot();
+                     }
+             }
+
+             function checkForCollisions()
+             {
+                 var vulnerable = mShip.isVulnerable();
+                 var newAsteroids = []
+                 //bullets and asteroids
+                 for (var i = 0; i < mAsteroids.length; i++)
+                     {
+                         if(vulnerable && didShipCollide(mAsteroids[i])){
+                             //decrement lives
+                             lives--;
+                             //reset ship, make invincible for 3 seconds
+                             //freshly initialized ships are invincible for 3 seconds
+                             mShip = new ship(.075,15,WIDTH/2,HEIGHT/2);
+
+                         }
+                         var asteroidHit = false;
+                         for (var j = 0; j < mShip.bullets.length; j++)
+                             {
+                                 if(checkAsteroidBulletCollision(mAsteroids[i], mShip.bullets[j])){
+                                     asteroidHit = true;
+                                     mShip.bullets.splice(j, 1)
+                                     break;
+                                 }
+                             }
+                         if(asteroidHit){
+                             newAsteroids = newAsteroids.concat(mAsteroids[i].splitAsteroid());
+                             incrementScore(mAsteroids[i].getScore());
+                             mAsteroids.splice(i, 1);
+                             i--;
+                         }
+                     }
+                 mAsteroids = mAsteroids.concat(newAsteroids);
+             }
+
+             function didShipCollide(asteroid){
+                 if(lose) return false; //for fun!
+                 
+                 //check each vertex, if distance is < circle radius, it's a collision.
+                 const distance = Math.sqrt(Math.pow(asteroid.xPos - mShip.xPos, 2) + Math.pow(asteroid.yPos - mShip.yPos, 2));
+                 if(distance <= asteroid.radius) return true;
+
+                 //check if circle is inside of ship
+                 //check if circle hit edge of ship
+                 //just kidding, everything is small enough that vertices will be enough
+                 return false;    
+             }
+
+             function incrementScore(asteroidValue){
+                 if(lose) return;
+                 const currentScore = score;
+                 const newScore = score + asteroidValue;
+                 if(currentScore % 7500 > newScore % 7500 && currentScore < 7500) lives++;
+                 if(currentScore % 20000 > newScore % 20000) lives++;
+                 score = newScore;
+             }
+
+             function checkAsteroidBulletCollision(asteroid, bullet){
+                 //if the distance between the bullet and the asteroid is less than
+                 // the sum of their radii, they are collided.
+                 const distance = Math.sqrt(Math.pow(asteroid.xPos - bullet.xPos, 2) + Math.pow(asteroid.yPos - bullet.yPos, 2));
+                 const radii = asteroid.radius + bullet.radius;
+                 if(distance <= radii) return true;
+                 return false;
+             }
+
+             function updateScore(){
+                 document.getElementById("score").innerHTML = score;
+             }
+
+             function updateLives(){
+                 document.getElementById("lives").innerHTML = lives;
+             }
+
+             function checkWin(){
+                 if(mAsteroids.length == 0){
+                     //reset game, add additional asteroid
+                     numAsteroids++;
+                     initializeAsteroids();
+                     mShip = new ship(.075,15,WIDTH/2,HEIGHT/2);
+                 }
+             }
+
+             function checkLose(){
+                 if(lives < 0){
+                     lose = true;
+                     //you lose! (but still can fly around and stuff)
+                     ctx.font = "30px Arial";
+                     ctx.fillStyle = 'black';
+                     ctx.fillText("Game Over", WIDTH/2 - 75, HEIGHT/2);
+                 }
+             }
+
+             function draw() {
+                 clear();
+                 checkForCollisions();
+                 move();
+                 ctx.fillStyle = "white";
+                 ctx.strokeStyle = "black";
+                 rect(0,0,WIDTH,HEIGHT);
+                 mShip.moveShip();
+                 mShip.drawShip(canvas,ctx);
+                 mShip.drawBullets(canvas,ctx);
+
+                 for(var i = 0; i < mAsteroids.length; i++)
+                     {
+                         mAsteroids[i].moveAsteroid();
+                         mAsteroids[i].drawAsteroid(canvas,ctx);
+                     }
+                 updateScore()
+                 updateLives()
+                 checkLose()
+                 checkWin()
+             }
+
+
+             init();
+             window.addEventListener('keydown',doKeyDown,true);
+             window.addEventListener('keyup',doKeyUp,true);
+            </script>
 </section>
 </body>
 </html>
